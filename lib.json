@@ -1,0 +1,14 @@
+{
+    "kicks": 
+    [
+        "samples/kicks"
+    ],
+    "snares": 
+    [
+        "samples/snares"
+    ],
+    "hihats":
+    [
+        "samples/hihats"
+    ]
+}

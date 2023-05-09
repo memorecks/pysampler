@@ -1,0 +1,27 @@
+# Virtual env
+.env/
+.venv/
+venv/
+
+# Dot env
+.env
+
+# System files
+Icon
+.DS_Store
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Pycache
+__pycache__/
+*/__pycache__/
+
+# Working dirs for pysampler
+output/
+samples/
+scripts/
