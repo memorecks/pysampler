@@ -12,8 +12,7 @@ def prob_steps(probs: list[float], repeats: int = 1, duplicates: int = 0) -> lis
     Returns:
         list[bool]: Randomized steps
     """
-    # TODO: Make 'repeats' function the same as in make_ksh
-    #       (well this works differently, we should have another var called (extends))
+
     gates = []
     for _ in range(repeats):
         for step in probs:
