@@ -3,6 +3,8 @@ import math
 import scipy.signal
 import librosa
 
+from .util import *
+
 # Wrapper Classes
 # (This lets us store effects as objects per track or sequence)
 # (Processing happens in Sequencer.render())
@@ -35,11 +37,11 @@ class HardClip:
         return audio
 
 class Normalize:
-    def __init__(self,max_level):
+    def __init__(self, max_level: float = 0):
         self.max_level = max_level
-    def process(self, audio):
+    def process(self, audio: np.ndarray):
         audio = normalize(audio,self.max_level)
-        return audio    
+        return audio
 
 class Filter:
     def __init__(self,filter_type,cutoff,order):
@@ -117,14 +119,6 @@ def pitch_resample(y,n,orig_sr):
     
     return y_shifted
 
-def db_to_linear(n):
-    """Converts decibel value to linear"""
-    return 10 ** (n/20)
-
-def linear_to_db(n):
-    """Converts linear value to decibel"""
-    return math.log10(abs(n)) * 20
-
 def adjust_volume(wavdata,level_db):
     """Adjust volume of audio by number of decibels"""
     wavdata = np.multiply(wavdata, db_to_linear(level_db))
@@ -162,7 +156,7 @@ def compressor(data, threshold, ratio, attack_time, release_time, sample_rate=44
 def normalize(audio, max_level=0):
     """Normalize audio to max_level (decibel)"""
     # Convert the maximum level from dB to linear scale
-    max_level = 10 ** (max_level / 20)
+    max_level = db_to_linear(max_level)
     # Calculate the maximum absolute value of the audio data
     max_abs_val = np.max(np.abs(audio))
     # Normalize the audio data by dividing by the maximum absolute value and multiplying by the maximum level
