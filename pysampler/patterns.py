@@ -1,16 +1,19 @@
 import random
+import copy
 
-def prob_steps(probs: list[float], repeats: int = 1) -> list[int]:
+def prob_steps(probs: list[float], repeats: int = 1, duplicates: int = 0) -> list[int]:
     """Create and fill steps based on probabilities, 0..100
     
     Args:
-        repeats (int): Number of times to iterate through probs
         probs (list[int]): Probabilities (0-100)
+        repeats (int): Number of times to iterate through probs
+        duplicates: Number of times to extend the list
 
     Returns:
         list[bool]: Randomized steps
     """
     # TODO: Make 'repeats' function the same as in make_ksh
+    #       (well this works differently, we should have another var called (extends))
     gates = []
     for _ in range(repeats):
         for step in probs:
@@ -18,12 +21,17 @@ def prob_steps(probs: list[float], repeats: int = 1) -> list[int]:
             chance_off = 1 - chance_on
             gate = random.choices([1, 0], [chance_on, chance_off])[0]
             gates.append(gate)
+    
+    # Duplicates
+    gates_c = copy.copy(gates)
+    for _ in range(duplicates):
+        gates.extend(gates_c)
+
     return gates
 
-def make_kick_steps(n_steps: int = 8, repeats:int = 0, density: float = 0.25) -> list[int]:
+def make_kick_steps(n_steps: int = 8, duplicates: int = 0, density: float = 0.25) -> list[int]:
     """Generate gate steps suitable for a kick drum
     Ensure that there is always a kick on 1st beat
-    
     """
     gates = []
 
@@ -36,13 +44,14 @@ def make_kick_steps(n_steps: int = 8, repeats:int = 0, density: float = 0.25) ->
             gates.append(random.choices([0,1],[1-density,density])[0])
 
     # Repeat
-    for i in range(repeats):
-        gates.extend(gates)
+    gates_c = copy.copy(gates)
+    for i in range(duplicates):
+        gates.extend(gates_c)
     return gates
 
 def make_rand_steps(
         n_steps: int = 8, 
-        repeats: int = 0, 
+        duplicates: int = 0, 
         even_density: float = 0.25, 
         odd_density: float = 0.25
     ) -> list[int]:
@@ -54,15 +63,16 @@ def make_rand_steps(
             gates.append(random.choices([0,1],[1-even_density,even_density]))
         else:
             gates.append(random.choices([0,1],[1-odd_density,odd_density]))
-
-    for i in range(repeats):
-        gates.extend(gates)
+    
+    gates_c = copy.copy(duplicates)
+    for i in range(duplicates):
+        gates.extend(gates_c)
 
     return gates
 
 def make_ksh(
         n_steps: int = 8, 
-        repeats: int = 0, 
+        duplicates: int = 0, 
         k_density: float = 0.25, 
         sn_odd_density: float = 0, 
         hh_density: float = 1, 
@@ -110,9 +120,12 @@ def make_ksh(
             hihat_gates.append(random.choices([0,1],[1-hh_odd_density,hh_odd_density])[0])
 
     # Repeat
-    for i in range(repeats):
-        kick_gates.extend(kick_gates)
-        snare_gates.extend(snare_gates)
-        hihat_gates.extend(hihat_gates)
+    kick_gates_c = copy.copy(kick_gates)
+    snare_gates_c = copy.copy(snare_gates)
+    hihat_gates_c = copy.copy(hihat_gates)
+    for i in range(duplicates):
+        kick_gates.extend(kick_gates_c)
+        snare_gates.extend(snare_gates_c)
+        hihat_gates.extend(hihat_gates_c)
 
     return kick_gates, snare_gates, hihat_gates
