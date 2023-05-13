@@ -1,5 +1,4 @@
 import random
-import copy
 
 def prob_steps(probs: list[float], repeats: int = 0, duplicates: int = 0) -> list[int]:
     """Create and fill steps based on probabilities, 0..100
@@ -7,7 +6,7 @@ def prob_steps(probs: list[float], repeats: int = 0, duplicates: int = 0) -> lis
     Args:
         probs (list[int]): Probabilities (0-100)
         repeats (int): Number of times to iterate through probs
-        duplicates: Number of times to extend the list
+        duplicates (int): Number of times to extend the list
 
     Returns:
         list[bool]: Randomized steps
