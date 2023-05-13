@@ -1,7 +1,7 @@
 import random
 import copy
 
-def prob_steps(probs: list[float], repeats: int = 1, duplicates: int = 0) -> list[int]:
+def prob_steps(probs: list[float], repeats: int = 0, duplicates: int = 0) -> list[int]:
     """Create and fill steps based on probabilities, 0..100
     
     Args:
@@ -14,18 +14,16 @@ def prob_steps(probs: list[float], repeats: int = 1, duplicates: int = 0) -> lis
     """
 
     gates = []
-    for _ in range(repeats):
+
+    for _ in range(repeats + 1):
         for step in probs:
             chance_on = step * 0.01
             chance_off = 1 - chance_on
             gate = random.choices([1, 0], [chance_on, chance_off])[0]
             gates.append(gate)
-    
-    # Duplicates
-    gates_c = copy.copy(gates)
-    for _ in range(duplicates):
-        gates.extend(gates_c)
 
+    gates *= duplicates + 1
+    
     return gates
 
 def make_kick_steps(n_steps: int = 8, duplicates: int = 0, density: float = 0.25) -> list[int]:
@@ -43,10 +41,7 @@ def make_kick_steps(n_steps: int = 8, duplicates: int = 0, density: float = 0.25
             gates.append(random.choices([0,1],[1-density,density])[0])
 
     # Repeat
-    gates_c = copy.copy(gates)
-    for i in range(duplicates):
-        gates.extend(gates_c)
-    return gates
+    gates *= duplicates + 1
 
 def make_rand_steps(
         n_steps: int = 8, 
@@ -63,15 +58,13 @@ def make_rand_steps(
         else:
             gates.append(random.choices([0,1],[1-odd_density,odd_density]))
     
-    gates_c = copy.copy(duplicates)
-    for i in range(duplicates):
-        gates.extend(gates_c)
+    gates *= duplicates + 1
 
     return gates
 
 def make_ksh(
-        n_steps: int = 8, 
-        duplicates: int = 0, 
+        n_steps: int = 8,
+        duplicates: int = 0,
         k_density: float = 0.25, 
         sn_odd_density: float = 0, 
         hh_density: float = 1, 
@@ -87,6 +80,7 @@ def make_ksh(
     Returns:
         kick_gates, snare_gates, hihat_gates
     """
+
     kick_gates = []
     snare_gates = []
     hihat_gates = []
@@ -118,13 +112,8 @@ def make_ksh(
         else:
             hihat_gates.append(random.choices([0,1],[1-hh_odd_density,hh_odd_density])[0])
 
-    # Repeat
-    kick_gates_c = copy.copy(kick_gates)
-    snare_gates_c = copy.copy(snare_gates)
-    hihat_gates_c = copy.copy(hihat_gates)
-    for i in range(duplicates):
-        kick_gates.extend(kick_gates_c)
-        snare_gates.extend(snare_gates_c)
-        hihat_gates.extend(hihat_gates_c)
+    kick_gates *= duplicates + 1
+    snare_gates *= duplicates + 1
+    hihat_gates *= duplicates + 1
 
     return kick_gates, snare_gates, hihat_gates
