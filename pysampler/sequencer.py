@@ -51,13 +51,21 @@ class Sequencer:
             swing (float): Shift every other step by a factor of 1 step
             humanize (float): Randomize all steps up to a factor of 1 step
         """        
-
+        # Default non specified params
         if vel_seq is None:
             vel_seq = []
         if pitch_seq is None:
             pitch_seq = []
         if samples is None:
             samples = []
+
+        # Duplicate sequences until they are length of steps
+        if len(vel_seq) > 0 and len(vel_seq) < len(step_seq):
+            vel_seq *= int(len(step_seq) / len(vel_seq))
+            vel_seq = vel_seq[:len(step_seq)]
+        if len(pitch_seq) > 0 and len(pitch_seq) < len(step_seq):
+            pitch_seq *= int(len(step_seq) / len(pitch_seq))
+            pitch_seq = pitch_seq[:len(step_seq)]
 
         # Validate sample paths and parameters
         if sample != '' and samples != []:
@@ -222,11 +230,6 @@ class Sequencer:
                         
                         # Adjust volume 
                         volume_adjustment = self.vol + track.vol + step.vol + sample.vol
-
-                        ### <- DEBUG
-                        print(f'Volume adjustment: {volume_adjustment}')
-                        ### -> DEBUG
-
                         wav_to_copy = adjust_volume(wavdata = wav_to_copy, level_db = volume_adjustment)
         
                         # Get length of modified sample, in number of samples
