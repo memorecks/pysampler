@@ -5,6 +5,7 @@ import os
 from typing import Optional
 import colorama
 from colorama import Fore, Back, Style
+import isobar as iso
 
 from .effects import apply_fadein, apply_fadeout, pitch_resample, adjust_volume, normalize
 from .sample import Sample
@@ -315,3 +316,46 @@ class Sequencer:
         # Save audio to .wav file using soundfile
         sf.write(filename, wav_canvas, sr, 'PCM_24')
         print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')
+    
+    def export_midi(self, filename: str = 'midi_export.mid'):
+        # TODO: Account for step.delay
+
+        midi_output = iso.MidiFileOutputDevice(filename)
+        timeline = iso.Timeline(
+            tempo = iso.MAX_CLOCK_RATE, 
+            output_device = midi_output
+        )
+        timeline.stop_when_done = True
+        default_midi_note = 48 # C2
+        iso_duration = self.grid * 4
+        for i, track in enumerate(self.tracks):
+            notes = []
+            amplitudes = []
+            durations = []
+            if track.midi_note is not None:
+                midi_note = track.midi_note
+            else:
+                midi_note = default_midi_note + i
+            for step in track.steps:
+                delay = step.delay + step.swing + step.humanize
+                delay *= iso_duration
+                print(delay)
+                if step.gate:
+                    notes.append(midi_note)
+                    amplitudes.append(step.vel)
+                else:
+                    notes.append(None)
+                    amplitudes.append(None)
+                durations.append(iso_duration + delay)
+
+            # Make isobar timeline
+            timeline.schedule({
+                "note": iso.PSequence(notes),
+                "amplitude": iso.PSequence(amplitudes),
+                "duration": iso_duration,
+                "gate": 1
+            }, count = len(notes))
+
+        timeline.run()
+        midi_output.write()
+

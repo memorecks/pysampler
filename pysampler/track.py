@@ -14,6 +14,7 @@ class Track:
         self.pitch = 0
         self.effects = []
         self.samples: list[Sample] = [] # store Sample objects here
+        self.midi_note = None
 
     def randomize_velocities(self, min: int = 0, max: int = 127):
         for step in self.steps:
