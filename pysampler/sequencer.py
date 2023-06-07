@@ -1,12 +1,18 @@
 import soundfile as sf
 import numpy as np
 import math
+import os
 from typing import Optional
+import colorama
+from colorama import Fore, Back, Style
 
 from .effects import apply_fadein, apply_fadeout, pitch_resample, adjust_volume, normalize
 from .sample import Sample
 from .track import Track
 from .step import Step
+
+colorama.init(autoreset=True)
+print(f'{Style.BRIGHT}{Fore.CYAN}Welcome to PySampler!')
 
 class Sequencer:
     """Sequencer class which contains Track objects, tempo and sample references"""
@@ -137,7 +143,7 @@ class Sequencer:
     def add_effect(self, effect):
         self.effects.append(effect)
 
-    def render(self, filename: str = 'render.wav', sr: int = 44100, normalize_output: bool = True):
+    def render(self, filename: str = 'render.wav', sr: int = 44100, normalize_output: bool = True, output_stems: bool = False):
         """Render sequence to .wav file
 
         Args:
@@ -145,10 +151,9 @@ class Sequencer:
             sr (int): Sample rate
             normalize (bool): If audio is to be normalized
         """
-
+        print(f'{Fore.CYAN}> Rendering sequence {Style.BRIGHT}{filename}')
         # Initalize
         stems = []
-        track_stems = []
         channels = 2 # Stereo
         step_len_beats = self.grid*4
         step_len_samples = sr/(self.bpm/60)
@@ -162,11 +167,11 @@ class Sequencer:
 
         # Calculate the time for each step
         track_step_times = []
-        for ti, track in enumerate(self.tracks):
+        for track in self.tracks:
             step_times = []
-            for si, step in enumerate(track.steps):
+            for step_index, step in enumerate(track.steps):
                 if step.gate:
-                    t = si + step.swing + step.delay + step.humanize
+                    t = step_index + step.swing + step.delay + step.humanize
                     t = int(t * step_len_beats * step_len_samples)
                     step_times.append(t)
                 else:
@@ -198,6 +203,8 @@ class Sequencer:
 
         # Create and store stems for each track as waveform data
         for t_index, track in enumerate(self.tracks):
+            print(f'\t{Fore.YELLOW}> {t_index+1}/{len(self.tracks)} - Rendering track: {Style.BRIGHT}{track.name}')
+            track_stems = []
             sample: Sample
             for sample in track.samples:
                 
@@ -229,7 +236,9 @@ class Sequencer:
                             step.vol = 20 * math.log10(step.vel / 127)
                         
                         # Adjust volume 
-                        volume_adjustment = self.vol + track.vol + step.vol + sample.vol
+                        #volume_adjustment = self.vol + track.vol + step.vol + sample.vol
+                        # NEW: Adjust track volume at a later stage (post effects)
+                        volume_adjustment = self.vol + step.vol + sample.vol
                         wav_to_copy = adjust_volume(wavdata = wav_to_copy, level_db = volume_adjustment)
         
                         # Get length of modified sample, in number of samples
@@ -252,7 +261,6 @@ class Sequencer:
                             # Truncate sample to step length
                             wav_to_copy = wav_to_copy[0 : step_len]
                             # Avoid hard clips when sample restarts
-                            #wav_to_copy = effects.apply_fadein(wav_to_copy,fadein_duration=0.001)
                             wav_to_copy = apply_fadeout(wav_to_copy,fadeout_duration=1/60)
                             # Paste sample
                             wav_canvas[sample_index : sample_index + step_len] = wav_to_copy
@@ -267,20 +275,30 @@ class Sequencer:
                 # Copy the wav_canvas into our list of stems and repeat for each track
                 track_stems.append(wav_canvas)
             
-            # Combine track stems and apply track effects:
+            # Combine track stems, apply track effects, apply volume:
             wav_canvas = np.zeros((seq_len_samples, channels),dtype=np.float64)
             
             for track_stem in track_stems:
-                wav_canvas = np.add(wav_canvas, track_stem)
+                wav_canvas += track_stem
             
             for effect in track.effects:
                 wav_canvas = effect.process(wav_canvas)
-            
+
+            wav_canvas = adjust_volume(wav_canvas, track.vol)
+
+            if output_stems:
+                filename_path = os.path.dirname(filename)
+                filename_base = os.path.splitext(os.path.basename(filename))[0]
+                if not os.path.exists(f'{filename_path}/{filename_base}'):
+                    os.mkdir(f'{filename_path}/{filename_base}')
+                print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {Style.BRIGHT}{filename_path}/{filename_base}/{filename_base}_{track.name}.wav')
+                sf.write(f'{filename_path}/{filename_base}/{filename_base}_{track.name}.wav', wav_canvas, sr, 'PCM_24')
+
             stems.append(wav_canvas)
 
         # Combine stems to single waveform
         wav_canvas = np.zeros((seq_len_samples, channels),dtype=np.float64)
-        for stem in stems:
+        for index, stem in enumerate(stems):
             wav_canvas = np.add(wav_canvas, stem)
 
         # Apply sequence effects
@@ -296,4 +314,4 @@ class Sequencer:
 
         # Save audio to .wav file using soundfile
         sf.write(filename, wav_canvas, sr, 'PCM_24')
-        print(f'Render complete, file saved as {filename}')
+        print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')

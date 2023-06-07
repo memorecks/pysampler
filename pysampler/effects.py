@@ -21,11 +21,12 @@ class Compressor:
         return audio
 
 class SoftClip:
-    def __init__(self, threshold: float = 0, gain: float = 0):
+    def __init__(self, threshold: float = 0, gain: float = 0, auto_gain: bool = False):
         self.threshold = threshold
         self.gain = gain
+        self.auto_gain = auto_gain
     def process(self, audio):
-        audio = soft_clip(audio,self.threshold,self.gain)
+        audio = soft_clip(audio,self.threshold,self.gain,self.auto_gain)
         return audio
 
 class HardClip:
@@ -44,6 +45,7 @@ class Normalize:
         return audio
 
 class Filter:
+    """Filter types: 'low', 'mid', 'high'"""
     def __init__(self,filter_type,cutoff,order):
         self.filter_type = filter_type
         self.cutoff = cutoff
@@ -113,7 +115,7 @@ def pitch_resample(y,n,orig_sr):
     # Match librosa data shape to soundfile data shape
     y = y.transpose((1,0))
     # Resample data to reach desired pitch change
-    y_shifted = librosa.resample(y=y, orig_sr=orig_sr, target_sr=int(orig_sr*(factor**n)))
+    y_shifted = librosa.resample(y=y, orig_sr=orig_sr, target_sr=int(orig_sr*(factor**n)), res_type='soxr_vhq')
     # Match librosa data shape to soundfile data shape
     y_shifted = y_shifted.transpose((1,0))
     
@@ -173,17 +175,17 @@ def hard_clip(audio: np.ndarray, threshold: float = 0, gain: float = 0):
 
     return hard_clipped_audio
 
-def soft_clip(audio: np.ndarray, threshold: float = 0, gain: float = 0):
-    # TODO: Figure out why a 0db test signal outputs to -2.3db when 0 thresh and 0 gain
-    print(np.max(audio))
+def soft_clip(audio: np.ndarray, threshold: float = 0, gain: float = 0, auto_gain: bool = False):
     """Apply a soft clip effect to any value above the threshold"""
     # Convert the threshold from dB to linear scale
     threshold = db_to_linear(threshold)
     # Apply the soft clip effect to the audio data
     soft_clipped_audio = np.tanh(audio / threshold) * threshold
     # Apply gain
-    soft_clipped_audio = adjust_volume(soft_clipped_audio, gain)
-    print(np.max(soft_clipped_audio))
+    if auto_gain:
+        soft_clipped_audio = normalize(soft_clipped_audio)
+    else:
+        soft_clipped_audio = adjust_volume(soft_clipped_audio, gain)
     return soft_clipped_audio
 
 """
