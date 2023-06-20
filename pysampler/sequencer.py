@@ -3,16 +3,16 @@ import numpy as np
 import math
 import os
 from typing import Optional
-import colorama
-from colorama import Fore, Back, Style
-import isobar as iso
+from colorama import Fore, Back, Style, init
+import mido
 
 from .effects import apply_fadein, apply_fadeout, pitch_resample, adjust_volume, normalize
 from .sample import Sample
 from .track import Track
 from .step import Step
 
-colorama.init(autoreset=True)
+init(autoreset=True) # For colorama
+
 print(f'{Style.BRIGHT}{Fore.CYAN}Welcome to PySampler!')
 
 class Sequencer:
@@ -316,46 +316,49 @@ class Sequencer:
         # Save audio to .wav file using soundfile
         sf.write(filename, wav_canvas, sr, 'PCM_24')
         print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')
-    
-    def export_midi(self, filename: str = 'midi_export.mid'):
-        # TODO: Account for step.delay
 
-        midi_output = iso.MidiFileOutputDevice(filename)
-        timeline = iso.Timeline(
-            tempo = iso.MAX_CLOCK_RATE, 
-            output_device = midi_output
-        )
-        timeline.stop_when_done = True
-        default_midi_note = 48 # C2
-        iso_duration = self.grid * 4
-        for i, track in enumerate(self.tracks):
-            notes = []
-            amplitudes = []
-            durations = []
+    def export_midi(self, path: str = "midi.mid"):
+        midi_file = mido.MidiFile()
+        midi_tracks = []
+        DEFAULT_MIDI_NOTE = 48
+        # TODO: Account for grids that arent 1/16
+        QUARTER_NOTE = int(midi_file.ticks_per_beat / 4) 
+
+        for track_index, track in enumerate(self.tracks):
+            midi_track = mido.MidiTrack()
+
+            # Check if MIDI note specified
             if track.midi_note is not None:
                 midi_note = track.midi_note
             else:
-                midi_note = default_midi_note + i
-            for step in track.steps:
-                delay = step.delay + step.swing + step.humanize
-                delay *= iso_duration
-                print(delay)
+                midi_note = DEFAULT_MIDI_NOTE + track_index
+
+            for step_index, step in enumerate(track.steps):
+
+                delay = int((step.delay + step.swing + step.humanize) * QUARTER_NOTE)
+                delay_adjust = 0 # Used for negative steps
+
+                if step_index+1 < len(track.steps):
+                    # Check if the next step has negative delay and alter note end time to accomodate
+                    next_step = track.steps[step_index+1]
+                    next_delay = int((next_step.delay + next_step.swing + next_step.humanize) * QUARTER_NOTE)
+                    if next_delay < 0:
+                        delay_adjust = next_delay
+
+                if delay < 0:
+                    if step_index > 0:
+                        delay_adjust = delay_adjust + abs(delay)
+                    delay = 0
+
                 if step.gate:
-                    notes.append(midi_note)
-                    amplitudes.append(step.vel)
+                    midi_track.append(mido.Message('note_on', note = midi_note, velocity = step.vel, time = 0 + delay))
+                    midi_track.append(mido.Message('note_off', note = midi_note, velocity = step.vel, time = QUARTER_NOTE - delay + delay_adjust))
                 else:
-                    notes.append(None)
-                    amplitudes.append(None)
-                durations.append(iso_duration + delay)
-
-            # Make isobar timeline
-            timeline.schedule({
-                "note": iso.PSequence(notes),
-                "amplitude": iso.PSequence(amplitudes),
-                "duration": iso_duration,
-                "gate": 1
-            }, count = len(notes))
-
-        timeline.run()
-        midi_output.write()
-
+                    # A velocity of 0 means a rest
+                    midi_track.append(mido.Message('note_on', note = midi_note, velocity = 0, time = 0 + delay))
+                    midi_track.append(mido.Message('note_off', note = midi_note, velocity = 0, time = QUARTER_NOTE - delay + delay_adjust))
+            midi_tracks.append(midi_track)
+        
+        merged_track = mido.merge_tracks(midi_tracks)
+        midi_file.tracks.append(merged_track)
+        midi_file.save(path)
