@@ -13,12 +13,14 @@ class Library:
         with open(path) as f:
             self.samples = json.load(f)
 
-    def random_by_type(self, type: str):
+    def random_by_type(self, type: str, print_selection: bool = True):
         """Get a random .wav sample path by type of sample"""
         folder = random.choice(self.samples[type])
         options = glob.glob(f'{folder}/**/*.wav', recursive=True)
+        options += (glob.glob(f'{folder}/**/*.WAV', recursive=True)) # Fix for case sensitivity
         path = random.choice(options)
-        print(f'{Fore.MAGENTA}> 🔉 Sample: {Style.BRIGHT}{path}')
+        if print_selection:
+            print(f'{Fore.MAGENTA}> 🔉 Sample: {Style.BRIGHT}{path}')
         return path
 
     def rand_sample_from_folder(self, path: str):

@@ -1,6 +1,7 @@
 from .step import Step
 from .sample import Sample
 import random
+from copy import deepcopy
 
 class Track:
     """Track class which contains steps (gates), groove and volume information"""
@@ -20,10 +21,10 @@ class Track:
         for step in self.steps:
             step.vel = random.randint(min, max)
 
-    def humanize_steps(self, amount: float = 0, n_steps: int = 0, pos_delay: bool = True) -> None: 
+    def humanize_steps(self, amount: float = 0, n_steps: int = 0, pos_delay: bool = False) -> None: 
         """
         Adds random amounts of delay to each step in a track in Ms.
-        Replaces existing humanization. Can only use positive delay amounts.
+        Replaces existing humanization.
         A number of steps to repeat random sequence can be defined in n_steps.
         If n_steps is 0 it will default to all steps.
         """
@@ -35,19 +36,24 @@ class Track:
         if pos_delay:
             random_shifts = [random.uniform(0,amount) for _ in range(n_steps)]
         else:
-            random_shifts = [random.uniform(0,amount)-amount/2 for _ in range(n_steps)]
+            #random_shifts = [random.uniform(0,amount)-amount/2 for _ in range(n_steps)]
+            random_shifts = [random.uniform(-amount,amount)/2 for _ in range(n_steps)]
 
         # Set the humanize parameter for all steps
         for index, step in enumerate(self.steps):
             # Ensure positve delay on 1st step to avoid negative time index
             if index == 0:
-                step.humanize = abs(random_shifts[index%len(random_shifts)])
+                if random_shifts[index%len(random_shifts)] < 0:
+                    step.humanize = 0
+                else:
+                    step.humanize = random_shifts[index%len(random_shifts)]
             else:
                 step.humanize = random_shifts[index%len(random_shifts)]
 
     def duplicate_time(self, n: int = 1):
         for _ in range(n):
-            self.steps.extend(self.steps)         
+            self.steps.extend(deepcopy(self.steps))
+        
 
     def set_delay(self, delay: float = 0.0):
         """Shifts steps by a factor of 1 step"""

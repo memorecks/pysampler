@@ -1,0 +1,19 @@
+{
+    "kicks": 
+    [
+        "/Volumes/TERRAN/Production/Samples/Drum Kits/Memorecks/Memorecks Choice Samples 2023/Kicks",
+        "samples/kicks"
+    ],
+    "snares": 
+    [
+        "/Volumes/TERRAN/Production/Samples/Drum Kits/Memorecks/Memorecks Choice Samples 2023/Snares",
+        "/Volumes/TERRAN/Production/Samples/Drum Kits/Memorecks/Memorecks Choice Samples 2023/-50DrumKits Snares",
+        "samples/snares"    
+    ],
+    "hihats":
+    [
+        "/Volumes/TERRAN/Production/Samples/Drum Kits/Memorecks/Memorecks Choice Samples 2023/Hihats",
+        "/Volumes/TERRAN/Production/Samples/Drum Kits/Memorecks/Memorecks Choice Samples 2023/-50DrumKits Hihats",
+        "samples/hihats"
+    ]
+}

@@ -30,7 +30,32 @@ class Sequencer:
         for track in self.tracks:
             if track.name == name:
                 return track
-
+            
+    def print_track_grid(self):
+        """Prints a visual representation of the sequence to terminal"""
+        for track_index, track in enumerate(self.tracks):
+            line = str(track_index+1) + ' ' + track.name + '\t'
+            divider = ' ' * len(track.name) + '\t'
+            for step_index, step in enumerate(track.steps):
+                if step_index % 16 == 0:
+                    line += '║ '
+                    divider += '──'
+                elif step_index % 4 == 0:
+                    line += '│ '
+                    divider += '──'
+                if step.gate:
+                    line += '▓ '
+                    divider += '──'
+                else:
+                    line += '░ '
+                    divider += '──'
+            line += '║'
+            divider += '─'
+            print(divider)
+            print(line)
+            if track_index == len(self.tracks)-1:
+                print(divider)
+            
     def add_track(
         self,
         name: str,
@@ -57,7 +82,10 @@ class Sequencer:
             vol (float): Track volume in dB scale
             swing (float): Shift every other step by a factor of 1 step
             humanize (float): Randomize all steps up to a factor of 1 step
-        """        
+        """ 
+        # TODO: Cleanup parameters: track_pitch > pitch
+        # TODO: Fix sequence doubling to match length
+
         # Default non specified params
         if vel_seq is None:
             vel_seq = []
@@ -109,6 +137,24 @@ class Sequencer:
 
         # Add track to sequence
         self.tracks.append(track)
+
+    def duplicate_time(self, n: int = 1, pad_to_length: bool = True):
+        
+        if pad_to_length:
+            # Pad shorter sequences to longest sequence
+            # TODO: option for filling with None/blank steps
+            longest_seq_len = 0
+            for track in self.tracks:
+                if len(track.steps) > longest_seq_len:
+                    longest_seq_len = len(track.steps)
+            for track in self.tracks:
+                if len(track.steps) != longest_seq_len:
+                    track.steps *= int(longest_seq_len / len(track.steps))
+                    track.steps = track.steps[:longest_seq_len]
+        
+        for track in self.tracks:
+            for _ in range(n):
+                track.duplicate_time()
 
     def clear_tracks(self):
         """Clear all tracks from sequence"""
