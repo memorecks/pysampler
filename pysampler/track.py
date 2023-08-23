@@ -3,6 +3,8 @@ from .sample import Sample
 import random
 from copy import deepcopy
 
+# TODO: Fix swing calculation to adhere to roger linn / daw standards
+
 class Track:
     """Track class which contains steps (gates), groove and volume information"""
 
@@ -59,12 +61,6 @@ class Track:
         """Shifts steps by a factor of 1 step"""
         for step in self.steps:
             step.delay = delay
-
-    # def shift_steps(self,delay=0.1,mod=1,nstep=1):
-    #     """Shifts every nth step by a factor of 1"""
-    #     for index, step in enumerate(self.steps):
-    #         if index % mod == nstep:
-    #             step.delay = delay
 
     def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0):
         """Set swing for all steps in Track with optional velocity reduction. 

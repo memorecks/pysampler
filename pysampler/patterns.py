@@ -117,7 +117,7 @@ def make_ksh(
 
     return kick_gates, snare_gates, hihat_gates
 
-def gen_kick_snare(n_steps: int, kick_density: float = 0.3, snare_density: float = 0.3):
+def gen_kick_snare(n_steps: int, kick_density: float = 0.3, extra_snare_chance: float = 0.3):
 
     n_snares = int(n_steps/8) # This will only work for 1/16 grids
     n_kicks = int(n_steps * kick_density)
@@ -135,15 +135,18 @@ def gen_kick_snare(n_steps: int, kick_density: float = 0.3, snare_density: float
     random.shuffle(kick_gates)
 
     kick_gates.insert(0, 1)
-    
-    # for i in range(n_snares):
-    #     print(f'adding snare at {(i+1)*4}')
-    #     kick_gates[(i+1)*4] = 0
 
     for i in range(n_steps):
         if i % 8 == 4:
             kick_gates.insert(i,0)
             snare_gates[i] = 1
+
+        # Add snares on steps without kicks
+        else:
+            if kick_gates[i] != 1:
+                snare_gates[i] = random.choices([0,1],[1-extra_snare_chance, extra_snare_chance])[0]
+
+                
 
 
     return kick_gates, snare_gates

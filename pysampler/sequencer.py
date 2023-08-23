@@ -363,7 +363,7 @@ class Sequencer:
         sf.write(filename, wav_canvas, sr, 'PCM_24')
         print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')
 
-    def export_midi(self, path: str = "midi.mid"):
+    def export_midi(self, path: str = "midi.mid", name_meta: str = "Midi"):
         midi_file = mido.MidiFile()
         midi_tracks = []
         DEFAULT_MIDI_NOTE = 48
@@ -403,6 +403,9 @@ class Sequencer:
                     # A velocity of 0 means a rest
                     midi_track.append(mido.Message('note_on', note = midi_note, velocity = 0, time = 0 + delay))
                     midi_track.append(mido.Message('note_off', note = midi_note, velocity = 0, time = QUARTER_NOTE - delay + delay_adjust))
+            
+            midi_track.name = name_meta
+            
             midi_tracks.append(midi_track)
         
         merged_track = mido.merge_tracks(midi_tracks)

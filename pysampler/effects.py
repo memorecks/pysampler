@@ -52,7 +52,7 @@ class Filter:
         self.order = order
     def process(self, audio):
         audio = butterworth_filter(audio,self.filter_type,self.cutoff,self.order,sample_rate=44100)
-        return audio    
+        return audio
 
 class PitchResample:
     def __init__(self,n,sr=44100):
@@ -187,27 +187,6 @@ def soft_clip(audio: np.ndarray, threshold: float = 0, gain: float = 0, auto_gai
     else:
         soft_clipped_audio = adjust_volume(soft_clipped_audio, gain)
     return soft_clipped_audio
-
-"""
-GPT-4
-
-def soft_clip(audio_signal, threshold_db, gain_db):
-    # Convert threshold and gain from dB to linear scale
-    threshold = db_to_linear(threshold_db)
-    gain = db_to_linear(gain_db)
-
-    # Apply gain to the audio signal
-    audio_signal = audio_signal * gain
-
-    # Define a small constant value to avoid division by zero or very small values
-    epsilon = 1e-8
-
-    # Soft clip the audio signal
-    clipped_signal = np.where(audio_signal > threshold, threshold + (1 - threshold) * np.tanh((audio_signal - threshold) / (1 - threshold + epsilon)), audio_signal)
-    clipped_signal = np.where(audio_signal < -threshold, -threshold + (1 - threshold) * np.tanh((audio_signal + threshold) / (1 - threshold + epsilon)), clipped_signal)
-
-    return clipped_signal
-"""
 
 def inverse_hard_clip(data, threshold):
     """Opposite of hard clip, where values below threshold are set to threshold
