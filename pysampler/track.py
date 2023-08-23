@@ -62,7 +62,7 @@ class Track:
         for step in self.steps:
             step.delay = delay
 
-    def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0):
+    def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0, additive: bool = False):
         """Set swing for all steps in Track with optional velocity reduction. 
         
         Replaces current swing level.
@@ -71,11 +71,15 @@ class Track:
             distance (int): Number of steps between swing adjustment (1 is 1/16, 2 is 1/8)
             percentage (float): Percent of a whole step to swing (delay)
             vel_factor (float): Scale swung step velocity as factor (0.0..1.0)
+            additive (bool): Whether to add to existing swing level or not
         """
         mod = int(distance*2)
         for index, step in enumerate(self.steps):
             if index % mod == int(distance):
-                step.swing = percentage
+                if additive:
+                    step.swing += percentage
+                else:
+                    step.swing = percentage
                 step.vel = int(step.vel * vel_factor)
 
     def add_step(self, gate: int = 1, delay: float = 0.0, swing: float = 0.0, humanize: float = 0.0, vel: int = 127):

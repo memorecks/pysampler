@@ -169,7 +169,7 @@ class Sequencer:
         self.clear_tracks()
         self.clear_effects()
     
-    def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0):
+    def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0, additive: bool = False):
         """Set swing for all tracks in sequence
         Use distance to operate on different timescales (1/16, 1/8, etc)
 
@@ -178,9 +178,11 @@ class Sequencer:
                 distance = 1 = 1/16
                 distance = 2 = 1/8
             percentage (float): Percent of a whole step to swing
+            vel_factor (float): How much to multiply the steps velocity by
+            additive (bool): Whether to add to existing swing level or not
         """
         for track in self.tracks:
-            track.set_swing(distance = distance, percentage = percentage, vel_factor = vel_factor)
+            track.set_swing(distance = distance, percentage = percentage, vel_factor = vel_factor, additive = additive)
 
     def humanize_tracks(self, amount: float = 0.0, n_steps: int = 0, pos_delay: bool = True):
         """Humanize all tracks in sequence"""
