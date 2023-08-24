@@ -2,6 +2,7 @@
 .env/
 .venv/
 venv/
+vstpresets/
 
 # Dot env
 .env

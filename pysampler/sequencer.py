@@ -6,6 +6,8 @@ from typing import Optional
 from colorama import Fore, Back, Style, init
 import mido
 
+from pedalboard import VST3Plugin, Pedalboard
+
 from .effects import apply_fadein, apply_fadeout, pitch_resample, adjust_volume, normalize
 from .sample import Sample
 from .track import Track
@@ -320,7 +322,10 @@ class Sequencer:
                 wav_canvas += track_stem
             
             for effect in track.effects:
-                wav_canvas = effect.process(wav_canvas)
+                if isinstance(effect, VST3Plugin) or isinstance(effect, Pedalboard):
+                    wav_canvas = effect.process(wav_canvas, sr)
+                else:
+                    wav_canvas = effect.process(wav_canvas)
 
             wav_canvas = adjust_volume(wav_canvas, track.vol)
 
@@ -342,7 +347,10 @@ class Sequencer:
 
         # Apply sequence effects
         for effect in self.effects:
-            wav_canvas = effect.process(wav_canvas)
+            if isinstance(effect, VST3Plugin) or isinstance(effect, Pedalboard):
+                wav_canvas = effect.process(wav_canvas, sr)
+            else:
+                wav_canvas = effect.process(wav_canvas)
         
         if normalize_output:
             wav_canvas = normalize(wav_canvas, max_level=0)
