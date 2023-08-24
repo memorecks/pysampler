@@ -1,3 +1,5 @@
+# TODO: Clean up the add_track function, having both sample and samples as kwd arguments is confusing
+
 import soundfile as sf
 import numpy as np
 import math
@@ -12,7 +14,6 @@ from .track import Track
 from .step import Step
 
 init(autoreset=True) # For colorama
-
 print(f'{Style.BRIGHT}{Fore.CYAN}Welcome to PySampler!')
 
 class Sequencer:
@@ -338,10 +339,16 @@ class Sequencer:
             if output_stems:
                 filename_path = os.path.dirname(filename)
                 filename_base = os.path.splitext(os.path.basename(filename))[0]
-                if not os.path.exists(f'{filename_path}/{filename_base}'):
+                #if not os.path.exists(f'{filename_path}/{filename_base}'):
+                if not os.path.exists(os.path.join(filename_path, filename_base)):
                     os.mkdir(f'{filename_path}/{filename_base}')
-                print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {Style.BRIGHT}{filename_path}/{filename_base}/{filename_base}_{track.name}.wav')
-                sf.write(f'{filename_path}/{filename_base}/{filename_base}_{track.name}.wav', wav_canvas, sr, 'PCM_24')
+
+                stem_path = os.path.join(filename_path, filename_base, f'{filename_base}_{track.name}.wav')
+                print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {stem_path}')
+                sf.write(stem_path, wav_canvas, sr, 'PCM_24')
+                
+                #print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {Style.BRIGHT}{filename_path}/{filename_base}/{filename_base}_{track.name}.wav')
+                #sf.write(f'{filename_path}/{filename_base}/{filename_base}_{track.name}.wav', wav_canvas, sr, 'PCM_24')
 
             stems.append(wav_canvas)
 
