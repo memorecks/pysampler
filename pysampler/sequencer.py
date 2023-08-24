@@ -247,8 +247,6 @@ class Sequencer:
                         step_lengths[i] = 'last_step'
                 elif step_time is None and i == len(track_times)-1 and n1 is not None:
                     step_lengths[prev_step_index] = 'last_step'
-                # else:
-                #     step_lengths[prev_step_index] = 'this shouldnt happen!'
             track_step_lengths.append(step_lengths)
 
         # Create and store stems for each track as waveform data
@@ -257,20 +255,15 @@ class Sequencer:
             track_stems = []
             sample: Sample
             for sample in track.samples:
-                
                 # Initialize wav_canvas
                 wav_canvas = np.zeros((seq_len_samples, channels), dtype = np.float64)
                 
                 # Copy sample to canvas when there is a positive gate
                 step: Step
-                for index, step in enumerate(track.steps):
+                for s_index, step in enumerate(track.steps):
                     
                     if step.gate:
-                        # Calculate the sample time
-                        # TODO: Replace this with track_step_lengths[x][y]
-                        sample_index = index + step.swing + step.delay + step.humanize
-                        sample_index = int(sample_index * step_len_beats * step_len_samples)
-                        
+                        sample_index = track_step_times[t_index][s_index]
                         # Get the sample data
                         wav_to_copy = sample.sample_data
 
@@ -286,14 +279,12 @@ class Sequencer:
                             step.vol = 20 * math.log10(step.vel / 127)
                         
                         # Adjust volume 
-                        #volume_adjustment = self.vol + track.vol + step.vol + sample.vol
-                        # NEW: Adjust track volume at a later stage (post effects)
                         volume_adjustment = self.vol + step.vol + sample.vol
                         wav_to_copy = adjust_volume(wavdata = wav_to_copy, level_db = volume_adjustment)
         
                         # Get length of modified sample, in number of samples
                         wav_len = wav_to_copy.shape[0]
-                        step_len = track_step_lengths[t_index][index]
+                        step_len = track_step_lengths[t_index][s_index]
 
                         # Calculate how many samples remain in our canvas
                         time_left = seq_len_samples - sample_index
@@ -339,22 +330,17 @@ class Sequencer:
             if output_stems:
                 filename_path = os.path.dirname(filename)
                 filename_base = os.path.splitext(os.path.basename(filename))[0]
-                #if not os.path.exists(f'{filename_path}/{filename_base}'):
                 if not os.path.exists(os.path.join(filename_path, filename_base)):
                     os.mkdir(f'{filename_path}/{filename_base}')
-
                 stem_path = os.path.join(filename_path, filename_base, f'{filename_base}_{track.name}.wav')
                 print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {stem_path}')
                 sf.write(stem_path, wav_canvas, sr, 'PCM_24')
-                
-                #print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {Style.BRIGHT}{filename_path}/{filename_base}/{filename_base}_{track.name}.wav')
-                #sf.write(f'{filename_path}/{filename_base}/{filename_base}_{track.name}.wav', wav_canvas, sr, 'PCM_24')
 
             stems.append(wav_canvas)
 
         # Combine stems to single waveform
         wav_canvas = np.zeros((seq_len_samples, channels),dtype=np.float64)
-        for index, stem in enumerate(stems):
+        for s_index, stem in enumerate(stems):
             wav_canvas = np.add(wav_canvas, stem)
 
         # Apply sequence effects
