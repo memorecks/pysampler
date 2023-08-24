@@ -55,7 +55,7 @@ class Filter:
         return audio
 
 class PitchResample:
-    def __init__(self,n,sr=44100):
+    def __init__(self, n: float, sr: int = 44100):
         self.n = n
         self.sr = sr
     def process(self, audio):
@@ -103,7 +103,7 @@ def apply_fadeout(audio, sr=44100, fadeout_duration=1):
 
     return audio
 
-def pitch_resample(y,n,orig_sr):
+def pitch_resample(y: np.ndarray, n: float, orig_sr: int):
     """Wrapper for librosa.resample"""
     # NOTE: Due to how soundfile shapes the data, vs how librosa does,
     #       we have to flip the shape before and after

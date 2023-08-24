@@ -1,5 +1,3 @@
-# TODO: Clean up the add_track function, having both sample and samples as kwd arguments is confusing
-
 import soundfile as sf
 import numpy as np
 import math
@@ -84,6 +82,7 @@ class Sequencer:
             swing (float): Shift every other step by a factor of 1 step
             humanize (float): Randomize all steps up to a factor of 1 step
         """ 
+        # TODO: having both sample and samples as kwd arguments is confusing
         # TODO: Cleanup parameters: track_pitch > pitch
         # TODO: Fix sequence doubling to match length
 
@@ -140,7 +139,6 @@ class Sequencer:
         self.tracks.append(track)
 
     def duplicate_time(self, n: int = 1, pad_to_length: bool = True):
-        
         if pad_to_length:
             # Pad shorter sequences to longest sequence
             # TODO: option for filling with None/blank steps
@@ -228,7 +226,6 @@ class Sequencer:
                     step_times.append(None)
             track_step_times.append(step_times)
 
-
         # Calculate sample length for all steps
         track_step_lengths = []
         for track_times in track_step_times:
@@ -265,12 +262,12 @@ class Sequencer:
                     if step.gate:
                         sample_index = track_step_times[t_index][s_index]
                         # Get the sample data
-                        wav_to_copy = sample.sample_data
+                        sample_data, sample_sr = sample.sample_data, sample.sr
 
                         # Adjust pitch
                         st = sample.pitch + step.pitch + track.pitch
                         if st != 0:
-                            wav_to_copy = pitch_resample(wav_to_copy, st, orig_sr = 44100)
+                            sample_data = pitch_resample(sample_data, st, orig_sr = sample_sr)
 
                         # Convert 0-127 velocity to dbFS level
                         if step.vel == 0:
@@ -280,10 +277,10 @@ class Sequencer:
                         
                         # Adjust volume 
                         volume_adjustment = self.vol + step.vol + sample.vol
-                        wav_to_copy = adjust_volume(wavdata = wav_to_copy, level_db = volume_adjustment)
+                        sample_data = adjust_volume(wavdata = sample_data, level_db = volume_adjustment)
         
                         # Get length of modified sample, in number of samples
-                        wav_len = wav_to_copy.shape[0]
+                        wav_len = sample_data.shape[0]
                         step_len = track_step_lengths[t_index][s_index]
 
                         # Calculate how many samples remain in our canvas
@@ -300,17 +297,17 @@ class Sequencer:
                         # Copy sample to the canvas
                         if track.monophonic:
                             # Truncate sample to step length
-                            wav_to_copy = wav_to_copy[0 : step_len]
+                            sample_data = sample_data[0 : step_len]
                             # Avoid hard clips when sample restarts
-                            wav_to_copy = apply_fadeout(wav_to_copy,fadeout_duration=1/60)
+                            sample_data = apply_fadeout(sample_data,fadeout_duration=1/60)
                             # Paste sample
-                            wav_canvas[sample_index : sample_index + step_len] = wav_to_copy
+                            wav_canvas[sample_index : sample_index + step_len] = sample_data
                         else:
                             # Make sure we have time left, and then paste sample
                             if wav_canvas[sample_index:sample_index + wav_len].shape[0] != 0:
                                 wav_canvas[sample_index:sample_index + wav_len] = np.add(
                                     wav_canvas[sample_index:sample_index + wav_len], 
-                                    wav_to_copy[0:time_left]
+                                    sample_data[0:time_left]
                                 )
 
                 # Copy the wav_canvas into our list of stems and repeat for each track
