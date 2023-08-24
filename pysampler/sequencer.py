@@ -260,7 +260,7 @@ class Sequencer:
                 for s_index, step in enumerate(track.steps):
                     
                     if step.gate:
-                        sample_index = track_step_times[t_index][s_index]
+                        sample_time = track_step_times[t_index][s_index]
                         # Get the sample data
                         sample_data, sample_sr = sample.sample_data, sample.sr
 
@@ -284,7 +284,7 @@ class Sequencer:
                         step_len = track_step_lengths[t_index][s_index]
 
                         # Calculate how many samples remain in our canvas
-                        time_left = seq_len_samples - sample_index
+                        time_left = seq_len_samples - sample_time
 
                         # Checks and/or fix step length
                         if step_len == 'last_step':
@@ -301,12 +301,12 @@ class Sequencer:
                             # Avoid hard clips when sample restarts
                             sample_data = apply_fadeout(sample_data,fadeout_duration=1/60)
                             # Paste sample
-                            wav_canvas[sample_index : sample_index + step_len] = sample_data
+                            wav_canvas[sample_time : sample_time + step_len] = sample_data
                         else:
                             # Make sure we have time left, and then paste sample
-                            if wav_canvas[sample_index:sample_index + wav_len].shape[0] != 0:
-                                wav_canvas[sample_index:sample_index + wav_len] = np.add(
-                                    wav_canvas[sample_index:sample_index + wav_len], 
+                            if wav_canvas[sample_time:sample_time + wav_len].shape[0] != 0:
+                                wav_canvas[sample_time:sample_time + wav_len] = np.add(
+                                    wav_canvas[sample_time:sample_time + wav_len], 
                                     sample_data[0:time_left]
                                 )
 
