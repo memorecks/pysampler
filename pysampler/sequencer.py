@@ -14,7 +14,6 @@ from .track import Track
 from .step import Step
 
 init(autoreset=True) # For colorama
-print(f'{Style.BRIGHT}{Fore.CYAN}Welcome to PySampler!')
 
 class Sequencer:
     """Sequencer class which contains Track objects, tempo and sample references"""
@@ -170,20 +169,31 @@ class Sequencer:
         self.clear_tracks()
         self.clear_effects()
     
-    def set_swing(self, distance: int = 1, percentage: float = 0.0, vel_factor: float = 1.0, additive: bool = False):
-        """Set swing for all tracks in sequence
-        Use distance to operate on different timescales (1/16, 1/8, etc)
+    def set_swing(
+            self, 
+            percentage: float = 0.0, 
+            distance: int = 1, 
+            vel_factor: float = 1.0, 
+            additive: bool = False, 
+            linn_scale = False
+        ):
+        """Set swing for all tracks in the sequence
 
         Args:
-            distance (int): Number of steps between swing adjustment
-                distance = 1 = 1/16
-                distance = 2 = 1/8
-            percentage (float): Percent of a whole step to swing
-            vel_factor (float): How much to multiply the steps velocity by
+            percentage (float): Swing percentage 0..100
+            distance (int): Number of steps between swing adjustment (1 is 1/16, 2 is 1/8)
+            vel_factor (float): Scale swung step velocity as factor (0.0..1.0)
             additive (bool): Whether to add to existing swing level or not
+            linn_scale (bool): Changes swing scale to 50..75
         """
         for track in self.tracks:
-            track.set_swing(distance = distance, percentage = percentage, vel_factor = vel_factor, additive = additive)
+            track.set_swing(
+                percentage = percentage, 
+                distance = distance, 
+                vel_factor = vel_factor, 
+                additive = additive, 
+                linn_scale = linn_scale
+            )
 
     def humanize_tracks(self, amount: float = 0.0, n_steps: int = 0, pos_delay: bool = True):
         """Humanize all tracks in sequence"""
@@ -193,15 +203,24 @@ class Sequencer:
     def add_effect(self, effect):
         self.effects.append(effect)
 
-    def render(self, filename: str = 'render.wav', sr: int = 44100, normalize_output: bool = True, output_stems: bool = False):
+    def render(
+            self, 
+            filename: str = 'render.wav', 
+            sr: int = 44100, 
+            normalize_output: bool = True, 
+            output_stems: bool = False,
+            verbose: bool = True
+        ):
         """Render sequence to .wav file
 
         Args:
-            filename (str): Path to save audio file
+            filename (str): Path to new audio file
             sr (int): Sample rate
-            normalize (bool): If audio is to be normalized
+            normalize (bool): If audio is to be normalized at the end
+            output_stems (bool): Save track stems alongside new file
         """
-        print(f'{Fore.CYAN}> Rendering sequence {Style.BRIGHT}{filename}')
+        if verbose:
+            print(f'{Fore.CYAN}> Rendering sequence {Style.BRIGHT}{filename}')
         # Initalize
         stems = []
         channels = 2 # Stereo
@@ -215,7 +234,7 @@ class Sequencer:
                 seq_len = len(track.steps)
         seq_len_samples = int(seq_len * step_len_samples * step_len_beats)
 
-        # Calculate the time for each step
+        # Calculate the time for each step V1
         track_step_times = []
         for track in self.tracks:
             step_times = []
@@ -250,7 +269,8 @@ class Sequencer:
 
         # Create and store stems for each track as waveform data
         for t_index, track in enumerate(self.tracks):
-            print(f'\t{Fore.YELLOW}> {t_index+1}/{len(self.tracks)} - Rendering track: {Style.BRIGHT}{track.name}')
+            if verbose:
+                print(f'\t{Fore.YELLOW}> {t_index+1}/{len(self.tracks)} - Rendering track: {Style.BRIGHT}{track.name}')
             track_stems = []
             sample: Sample
             for sample in track.samples:
@@ -335,7 +355,8 @@ class Sequencer:
                 if not os.path.exists(os.path.join(filename_path, filename_base)):
                     os.mkdir(f'{filename_path}/{filename_base}')
                 stem_path = os.path.join(filename_path, filename_base, f'{filename_base}_{track.name}.wav')
-                print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {stem_path}')
+                if verbose:
+                    print(f'\t\t{Fore.LIGHTYELLOW_EX}> Creating stem: {stem_path}')
                 sf.write(stem_path, wav_canvas, sr, 'PCM_24')
 
             stems.append(wav_canvas)
@@ -361,7 +382,8 @@ class Sequencer:
 
         # Save audio to .wav file using soundfile
         sf.write(filename, wav_canvas, sr, 'PCM_24')
-        print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')
+        if verbose:
+            print(f'{Fore.GREEN}✅ Render complete, file saved as {Fore.LIGHTGREEN_EX}{Style.BRIGHT}{filename}\n')
 
     def export_midi(self, path: str = "midi.mid", name_meta: str = "Midi"):
         midi_file = mido.MidiFile()
