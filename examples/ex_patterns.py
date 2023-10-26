@@ -1,11 +1,3 @@
-#---------------------------------------------------------------------------#
-# Append sys path to avoid import errors during development context
-#---------------------------------------------------------------------------#
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#---------------------------------------------------------------------------#
-
 from pysampler import Sequencer, patterns
 
 seq = Sequencer(bpm = 90, grid=1/16)
