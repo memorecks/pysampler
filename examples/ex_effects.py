@@ -40,4 +40,4 @@ seq.tr('hihat').add_effect(hpf)
 seq.add_effect(sclp) # Add effects to entire sequence
 
 # Render audio to disk
-seq.render('ex_basic_loop.wav')
+seq.render('ex_effects.wav')

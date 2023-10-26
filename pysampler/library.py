@@ -7,7 +7,27 @@ init(autoreset=True)
 
 class Library:
     """Sample Library class which provides functions to reference samples.
-    Loads sample folder paths from JSON into a dict with sample types as keys"""
+    Loads sample folder paths from JSON into a dict with sample types as keys
+    
+    Example JSON structure:
+    {
+        "kicks": 
+        [
+            "samples/kicks",
+            "other_samples/kicks2"
+        ],
+        "snares": 
+        [
+            "samples/snares",
+            "other_samples/snares2"
+        ],
+        "hihats":
+        [
+            "samples/hihats",
+            "other_samples/hihats2"
+        ]
+    }
+    """
 
     def __init__(self, path: str = 'lib.json') -> None:
         with open(path) as f:

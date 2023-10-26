@@ -25,24 +25,7 @@ def prob_steps(probs: list[float], repeats: int = 0, duplicates: int = 0) -> lis
     
     return gates
 
-def make_kick_steps(n_steps: int = 8, duplicates: int = 0, density: float = 0.25) -> list[int]:
-    """Generate gate steps suitable for a kick drum
-    Ensure that there is always a kick on 1st beat
-    """
-    gates = []
-
-    # Fill steps
-    for i in range(n_steps-1):
-        if i == 0:
-            # Always make gate on 1st step for kicks
-            gates.append(1)
-        else:
-            gates.append(random.choices([0,1],[1-density,density])[0])
-
-    # Repeat
-    gates *= duplicates + 1
-
-def make_rand_steps(
+def rand_steps(
         n_steps: int = 8, 
         duplicates: int = 0, 
         even_density: float = 0.25, 
@@ -61,7 +44,24 @@ def make_rand_steps(
 
     return gates
 
-def make_ksh(
+def gen_kick(n_steps: int = 8, duplicates: int = 0, density: float = 0.25) -> list[int]:
+    """Generate gate steps suitable for a kick drum
+    Ensure that there is always a kick on 1st beat
+    """
+    gates = []
+
+    # Fill steps
+    for i in range(n_steps-1):
+        if i == 0:
+            # Always make gate on 1st step for kicks
+            gates.append(1)
+        else:
+            gates.append(random.choices([0,1],[1-density,density])[0])
+
+    # Repeat
+    gates *= duplicates + 1
+
+def gen_ksh(
         n_steps: int = 8,
         duplicates: int = 0,
         k_density: float = 0.25, 
@@ -118,6 +118,8 @@ def make_ksh(
     return kick_gates, snare_gates, hihat_gates
 
 def gen_hihats(n_steps: int, even_density: float = 1, odd_density: float = 0):
+    """Generates step sequence typical for a hihat pattern.
+    """
     hihat_gates = []
     for i in range(n_steps):
         if i % 2 == 0:
@@ -128,7 +130,9 @@ def gen_hihats(n_steps: int, even_density: float = 1, odd_density: float = 0):
 
 
 def gen_kick_snare(n_steps: int, kick_density: float = 0.3, extra_snare_chance: float = 0.3):
-
+    """Generates step sequences for kick and snare based on density.
+    This algo is slightly different from gen_ksh, and will ensure proper density
+    """
     n_snares = int(n_steps/8) # This will only work for 1/16 grids
     n_kicks = int(n_steps * kick_density)
 

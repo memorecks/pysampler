@@ -38,4 +38,4 @@ seq.add_track(
 seq.tr('snare').vol = -3 # Change tracks retroactivley
 
 seq.duplicate_time(2)
-seq.render('ex_basic_loop.wav')
+seq.render('ex_adding_tracks.wav')

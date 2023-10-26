@@ -33,4 +33,4 @@ seq.set_swing(66)
 seq.duplicate_time(2)
 
 # Render audio to disk
-seq.render('ex_basic_loop.wav')
+seq.render('ex_sample_libraries.wav')
