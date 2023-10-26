@@ -33,7 +33,7 @@ brew install libsndfile
 brew install ffmpeg
 ```
 
-### Usage
+### Users
 Create a virtual environment (or not) and install package via pip
 ```
 pip install git+https://github.com/memorecks/pysampler.git
@@ -47,9 +47,19 @@ pip install soundfile numpy scipy mido librosa colorama pedalboard
 ```
 You may also install the dependencies with the requirements.txt file
 
+Note that running any of the examples in this context may throw an error.
+You may need to add pysampler to your PATH like so:
+```
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+```
+
 # Usage
 
 See the /examples folder for more details. Most objects and functions are documented well.
+
+Make sure to replace the .wav file paths with your own samples!
 
 ```
 import pysampler
