@@ -32,6 +32,7 @@ Open terminal and run the following commands:
 brew install libsndfile
 brew install ffmpeg
 ```
+This was developed using Python 3.10 and some of the dependencies may not work on other versions.
 
 ### Users
 Create a virtual environment (or not) and install package via pip
